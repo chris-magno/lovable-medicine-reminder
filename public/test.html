@@ -2,138 +2,66 @@
 <html lang="en">
 <head>
 <meta charset="UTF-8">
-<title>Hospital Medicine Reminder</title>
-<link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+<title>Medicine Reminder System</title>
 <style>
   body {
-    font-family: 'Roboto', sans-serif;
-    background: #f1f5f9;
-    margin: 0;
-    padding: 0;
-  }
-
-  header {
-    background-color: #0d6efd;
-    color: white;
-    padding: 20px 30px;
-    text-align: center;
-    font-size: 1.8em;
-    font-weight: 500;
-    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
-  }
-
-  .container {
-    max-width: 900px;
-    margin: 30px auto;
-    padding: 0 20px;
-  }
-
-  .card {
-    background: white;
+    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
+    background: linear-gradient(to right, #e0f7fa, #ffffff);
     padding: 20px;
-    margin-bottom: 20px;
+  }
+  h2 { color: #00796b; }
+  .card {
+    background: rgba(255,255,255,0.9);
+    padding: 20px;
+    margin: 15px 0;
     border-radius: 12px;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.1);
-    transition: 0.3s;
+    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
   }
-  .card:hover {
-    box-shadow: 0 8px 16px rgba(0,0,0,0.2);
+  input, textarea {
+    width: 100%; padding: 10px; margin: 8px 0;
+    border-radius: 6px; border: 1px solid #ccc;
   }
-
-  .card h3 {
-    margin-top: 0;
-    color: #0d6efd;
-    font-weight: 500;
-  }
-
-  label {
-    display: block;
-    margin: 10px 0 5px 0;
-    font-weight: 500;
-  }
-
-  input, textarea, select {
-    width: 100%;
-    padding: 10px;
-    margin-bottom: 10px;
-    border-radius: 6px;
-    border: 1px solid #ccc;
-    box-sizing: border-box;
-    font-size: 0.95em;
-  }
-
   button {
-    padding: 12px 25px;
-    background-color: #0d6efd;
-    color: white;
-    border: none;
-    border-radius: 6px;
-    font-size: 1em;
-    cursor: pointer;
-    transition: 0.2s;
+    padding: 12px 25px; border: none; border-radius: 6px;
+    background-color: #00796b; color: white; cursor: pointer;
+    font-weight: bold;
   }
-
-  button:hover {
-    background-color: #0b5ed7;
-  }
-
   #reminderList .card {
-    display: flex;
-    flex-direction: column;
-    justify-content: space-between;
-  }
-
-  .reminder-time {
-    font-weight: 500;
-    color: #555;
-  }
-
-  .sent-status {
-    font-weight: 500;
-    color: green;
-  }
-
-  .not-sent {
-    color: red;
+    background: #b2dfdb;
   }
 </style>
 </head>
 <body>
 
-<header>Hospital Medicine Reminder System</header>
-
-<div class="container">
-  <div class="card">
-    <h3>Add New Reminder</h3>
-    <input type="text" id="patientName" placeholder="Patient Name">
-    <input type="text" id="medicine" placeholder="Medicine Name">
-    <input type="text" id="dosage" placeholder="Dosage (e.g., 2 pills)">
-    <textarea id="notes" placeholder="Notes (optional)"></textarea>
-    <input type="text" id="phone" placeholder="Phone number (09456035467)">
-    <label>Reminder Date & Time:</label>
-    <input type="datetime-local" id="datetime">
-    <button onclick="addReminder()">Add Reminder</button>
-  </div>
-
-  <h3>Current Reminders</h3>
-  <div id="reminderList"></div>
+<h2>Medicine Reminder Form</h2>
+<div class="card">
+  <input type="text" id="patientName" placeholder="Patient Name">
+  <input type="text" id="medicine" placeholder="Medicine Name">
+  <input type="text" id="dosage" placeholder="Dosage (e.g., 2 pills)">
+  <textarea id="notes" placeholder="Notes (optional)"></textarea>
+  <input type="text" id="phone" placeholder="Phone number (09456035467)">
+  <label>Reminder Date & Time:</label>
+  <input type="datetime-local" id="datetime">
+  <br>
+  <button onclick="addReminder()">Add Reminder</button>
 </div>
+
+<h3>Current Reminders</h3>
+<div id="reminderList"></div>
 
 <script>
 async function addReminder() {
-  const patientName = document.getElementById("patientName").value.trim();
-  const medicine = document.getElementById("medicine").value.trim();
-  const dosage = document.getElementById("dosage").value.trim();
-  const notes = document.getElementById("notes").value.trim();
+  let patientName = document.getElementById("patientName").value.trim();
+  let medicine = document.getElementById("medicine").value.trim();
+  let dosage = document.getElementById("dosage").value.trim();
+  let notes = document.getElementById("notes").value.trim();
   let phoneNumber = document.getElementById("phone").value.trim();
-  const datetime = document.getElementById("datetime").value;
+  let datetime = document.getElementById("datetime").value;
 
   if (!patientName || !medicine || !dosage || !phoneNumber || !datetime) {
     alert("Please fill all fields and select date & time.");
     return;
   }
-
-  if (phoneNumber.startsWith("0")) phoneNumber = "63" + phoneNumber.slice(1);
 
   const res = await fetch("/add-reminder", {
     method: "POST",
@@ -153,26 +81,15 @@ async function addReminder() {
 function displayReminders(reminders) {
   const container = document.getElementById("reminderList");
   container.innerHTML = "";
-
   reminders.forEach(r => {
     const div = document.createElement("div");
     div.className = "card";
-
-    // Format date nicely
-    const dateObj = new Date(r.datetime);
-    const formattedDate = dateObj.toLocaleString('en-PH', {
-      weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
-      hour: '2-digit', minute: '2-digit', hour12: true
-    });
-
     div.innerHTML = `
-      <h3>${r.patientName}</h3>
-      <div><strong>Medicine:</strong> ${r.medicine}</div>
-      <div><strong>Dosage:</strong> ${r.dosage}</div>
-      <div><strong>Notes:</strong> ${r.notes || '-'}</div>
-      <div><strong>Phone:</strong> ${r.phoneNumber}</div>
-      <div class="reminder-time"><strong>Scheduled:</strong> ${formattedDate}</div>
-      <div class="${r.sent ? 'sent-status' : 'not-sent'}"><strong>Status:</strong> ${r.sent ? "Sent" : "Pending"}</div>
+      <strong>${r.patientName}</strong> - ${r.medicine} (${r.dosage})<br>
+      Notes: ${r.notes}<br>
+      Phone: ${r.phoneNumber}<br>
+      Scheduled: ${new Date(r.datetime).toLocaleString()}<br>
+      Sent: ${r.sent ? "Yes" : "No"}
     `;
     container.appendChild(div);
   });

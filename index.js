@@ -10,8 +10,9 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
 const app = express();
-const port = 3000;
+const port = process.env.PORT || 3000;
 
+// Middleware
 app.use(express.json());
 app.use(express.static(path.join(__dirname, "public")));
 
@@ -30,7 +31,7 @@ app.post("/add-reminder", (req, res) => {
   res.json({ success: true, reminders });
 });
 
-// Get reminders
+// Get all reminders
 app.get("/reminders", (req, res) => res.json({ reminders }));
 
 // Send SMS via iProg
@@ -42,30 +43,42 @@ async function sendSMS(phoneNumber, message) {
     api_token: process.env.IPROG_API_TOKEN,
     phone_number: formatted,
     message,
-    sender_id: "MedicalAlert" // Custom sender name
+    sender_id: "MEDALERT" // custom sender name
   };
 
-  const response = await fetch("https://www.iprogsms.com/api/v1/sms_messages", {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(payload)
-  });
+  try {
+    const response = await fetch("https://www.iprogsms.com/api/v1/sms_messages", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
 
-  const data = await response.json();
-  console.log("SMS sent:", data);
+    const data = await response.json();
+    console.log("SMS sent:", data);
+  } catch (err) {
+    console.error("Error sending SMS:", err);
+  }
 }
 
-// Scheduler: run every minute
-cron.schedule("* * * * *", () => {
+// Scheduler: check every minute for reminders
+cron.schedule("* * * * *", async () => {
   const now = new Date();
+  console.log("Checking reminders at", now.toLocaleString());
 
-  reminders.forEach(reminder => {
+  for (const reminder of reminders) {
     if (!reminder.sent && new Date(reminder.datetime) <= now) {
-      const msg = `Medical Alert for ${reminder.patientName}: Take ${reminder.medicine} (${reminder.dosage}). Notes: ${reminder.notes}`;
-      sendSMS(reminder.phoneNumber, msg);
+      const msg = `
+📌 Medicine Reminder
+Patient: ${reminder.patientName}
+Medicine: ${reminder.medicine}
+Dosage: ${reminder.dosage}
+Notes: ${reminder.notes}
+Scheduled Time: ${reminder.datetime}
+      `;
+      await sendSMS(reminder.phoneNumber, msg);
       reminder.sent = true;
     }
-  });
+  }
 });
 
 app.listen(port, () => console.log(`Server running at http://localhost:${port}`));

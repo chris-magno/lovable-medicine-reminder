@@ -34,16 +34,20 @@ app.post("/add-reminder", (req, res) => {
 // Get all reminders
 app.get("/reminders", (req, res) => res.json({ reminders }));
 
-// Send SMS via iProg
+// Send SMS via iProg with default sender, including "Medical Alert System" in the message
 async function sendSMS(phoneNumber, message) {
+  // Convert to international format
   let formatted = phoneNumber.startsWith("0") ? "63" + phoneNumber.slice(1) : phoneNumber;
   if (formatted.startsWith("+")) formatted = formatted.slice(1);
+
+  // Prepend "Medical Alert System" to the message
+  const fullMessage = `📢 Medical Alert System\n${message}`;
 
   const payload = {
     api_token: process.env.IPROG_API_TOKEN,
     phone_number: formatted,
-    message,
-    sender_id: "MEDALERT" // custom sender name
+    message: fullMessage
+    // No sender_id, uses default iProg number
   };
 
   try {
@@ -68,12 +72,11 @@ cron.schedule("* * * * *", async () => {
   for (const reminder of reminders) {
     if (!reminder.sent && new Date(reminder.datetime) <= now) {
       const msg = `
-📌 Medicine Reminder
 Patient: ${reminder.patientName}
 Medicine: ${reminder.medicine}
 Dosage: ${reminder.dosage}
 Notes: ${reminder.notes}
-Scheduled Time: ${reminder.datetime}
+Scheduled Time: ${new Date(reminder.datetime).toLocaleString()}
       `;
       await sendSMS(reminder.phoneNumber, msg);
       reminder.sent = true;

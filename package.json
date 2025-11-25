@@ -1,0 +1,16 @@
+{
+  "name": "lovable-medicine-reminder",
+  "version": "1.0.0",
+  "description": "Mini medicine reminder system with SMS notifications",
+  "main": "index.js",
+  "type": "module",
+  "scripts": {
+    "start": "node index.js"
+  },
+  "dependencies": {
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "node-fetch": "^3.3.2",
+    "node-cron": "^3.0.2"
+  }
+}

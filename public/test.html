@@ -5,26 +5,37 @@
 <title>Medicine Reminder System</title>
 <style>
   body {
-    font-family: "Segoe UI", Tahoma, Geneva, Verdana, sans-serif;
-    background: linear-gradient(to right, #e0f7fa, #ffffff);
+    font-family: "Segoe UI", Arial, sans-serif;
+    background: linear-gradient(to right, #e0f2f1, #ffffff);
     padding: 20px;
   }
-  h2 { color: #00796b; }
+  h2 {
+    color: #004d40;
+    text-align: center;
+  }
   .card {
-    background: rgba(255,255,255,0.9);
+    background: #ffffff;
     padding: 20px;
     margin: 15px 0;
     border-radius: 12px;
-    box-shadow: 0 6px 12px rgba(0,0,0,0.2);
+    box-shadow: 0 4px 10px rgba(0,0,0,0.15);
   }
   input, textarea {
-    width: 100%; padding: 10px; margin: 8px 0;
-    border-radius: 6px; border: 1px solid #ccc;
+    width: 100%;
+    padding: 10px;
+    margin: 8px 0;
+    border-radius: 6px;
+    border: 1px solid #bbb;
   }
   button {
-    padding: 12px 25px; border: none; border-radius: 6px;
-    background-color: #00796b; color: white; cursor: pointer;
+    padding: 12px 25px;
+    border: none;
+    border-radius: 6px;
+    background-color: #00695c;
+    color: white;
+    cursor: pointer;
     font-weight: bold;
+    width: 100%;
   }
   #reminderList .card {
     background: #b2dfdb;
@@ -34,15 +45,15 @@
 <body>
 
 <h2>Medicine Reminder Form</h2>
+
 <div class="card">
   <input type="text" id="patientName" placeholder="Patient Name">
   <input type="text" id="medicine" placeholder="Medicine Name">
   <input type="text" id="dosage" placeholder="Dosage (e.g., 2 pills)">
-  <textarea id="notes" placeholder="Notes (optional)"></textarea>
-  <input type="text" id="phone" placeholder="Phone number (09456035467)">
+  <textarea id="notes" placeholder="Additional Notes (Optional)"></textarea>
+  <input type="text" id="phone" placeholder="Phone Number (09456035467)">
   <label>Reminder Date & Time:</label>
   <input type="datetime-local" id="datetime">
-  <br>
   <button onclick="addReminder()">Add Reminder</button>
 </div>
 
@@ -59,19 +70,20 @@ async function addReminder() {
   let datetime = document.getElementById("datetime").value;
 
   if (!patientName || !medicine || !dosage || !phoneNumber || !datetime) {
-    alert("Please fill all fields and select date & time.");
+    alert("Please fill all fields.");
     return;
   }
 
-  const res = await fetch("/add-reminder", {
+  const res = await fetch(window.location.origin + "/add-reminder", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ patientName, medicine, dosage, notes, phoneNumber, datetime })
   });
 
   const data = await res.json();
+
   if (data.success) {
-    alert("Reminder added successfully!");
+    alert("Reminder added!");
     displayReminders(data.reminders);
   } else {
     alert("Error: " + data.error);
@@ -81,22 +93,26 @@ async function addReminder() {
 function displayReminders(reminders) {
   const container = document.getElementById("reminderList");
   container.innerHTML = "";
+
   reminders.forEach(r => {
     const div = document.createElement("div");
     div.className = "card";
     div.innerHTML = `
-      <strong>${r.patientName}</strong> - ${r.medicine} (${r.dosage})<br>
+      <strong>${r.patientName}</strong><br>
+      Medicine: ${r.medicine}<br>
+      Dosage: ${r.dosage}<br>
       Notes: ${r.notes}<br>
       Phone: ${r.phoneNumber}<br>
       Scheduled: ${new Date(r.datetime).toLocaleString()}<br>
-      Sent: ${r.sent ? "Yes" : "No"}
+      Status: <strong>${r.sent ? "Sent ✔" : "Pending..."}</strong>
     `;
     container.appendChild(div);
   });
 }
 
-// Load reminders on page load
-fetch("/reminders").then(res => res.json()).then(data => displayReminders(data.reminders));
+fetch(window.location.origin + "/reminders")
+  .then(res => res.json())
+  .then(data => displayReminders(data.reminders));
 </script>
 
 </body>
